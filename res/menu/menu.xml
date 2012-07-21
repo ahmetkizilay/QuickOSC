@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+	<item android:id="@+id/network_menu" android:title="network" />
+	<item android:id="@+id/edit_menu" android:title="edit" />
+	<item android:id="@+id/about_page" android:title="about" />
+</menu>
