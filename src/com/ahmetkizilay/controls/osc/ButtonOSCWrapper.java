@@ -44,20 +44,22 @@ public class ButtonOSCWrapper implements OnTouchListener{
 	}
 
 	public boolean onTouch(View v, MotionEvent event) {
+		
 		if(event.getAction() == MotionEvent.ACTION_DOWN) {
 			if(!parentActivity.isEditMode())
 			{
 				parentActivity.sendOSC(messageButtonPressed);
 				parentActivity.setDebugMessage(messageButtonPressed);
 			}
-			else 
-			{
+		}
+		else if(event.getAction() == MotionEvent.ACTION_UP) {
+			if(parentActivity.isEditMode()) {
 				parentActivity.callButtonOSCSetter(this);
 			}
-		}
-		else if(event.getAction() == MotionEvent.ACTION_UP && triggerWhenButtonReleased) {
-			parentActivity.sendOSC(messageButtonReleased);
-			parentActivity.setDebugMessage(messageButtonReleased);
+			else if(this.triggerWhenButtonReleased) {
+				parentActivity.sendOSC(messageButtonReleased);
+				parentActivity.setDebugMessage(messageButtonReleased);
+			}
 		}
 		else {
 		//	parentActivity.setDebugMessage(thisButton.getText() + " is " + event.getAction());
