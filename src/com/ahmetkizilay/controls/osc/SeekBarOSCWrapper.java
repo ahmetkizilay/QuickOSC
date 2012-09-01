@@ -19,7 +19,7 @@ public class SeekBarOSCWrapper implements OnSeekBarChangeListener {
 	private String msgValueChanged;
 	private float minValue = 0;
 	private float maxValue = 100;
-	
+	private String name;
 	
 	/**
 	 * Default constructor publicly available for other classes.
@@ -32,10 +32,25 @@ public class SeekBarOSCWrapper implements OnSeekBarChangeListener {
 		return new SeekBarOSCWrapper(name, seekBar, parentActivity);
 	}
 	
+	public static SeekBarOSCWrapper createInstance(String name, String msgValueChanged, float minVal, float maxVal, SeekBar seekBar, QuickOSCActivity parentActivity) {		
+		return new SeekBarOSCWrapper(name, msgValueChanged, minVal, maxVal, seekBar, parentActivity);
+	}
+	
 	private SeekBarOSCWrapper(String name, SeekBar seekBar, QuickOSCActivity parentActivity) {
 		this.seekBar = seekBar;
 		this.parentActivity = parentActivity;
+		this.name = name;
 		this.msgValueChanged = "/" + name + "/$";
+		this.seekBar.setOnSeekBarChangeListener(this);
+	}
+	
+	private SeekBarOSCWrapper(String name, String msgValueChanged, float minVal, float maxVal, SeekBar seekBar, QuickOSCActivity parentActivity) {
+		this.seekBar = seekBar;
+		this.parentActivity = parentActivity;
+		this.name = name;
+		this.msgValueChanged = (msgValueChanged == null || msgValueChanged.equals("")) ? "/" + name + "/$" : msgValueChanged;
+		this.minValue = minVal;
+		this.maxValue = maxVal;
 		this.seekBar.setOnSeekBarChangeListener(this);
 	}
 
@@ -81,7 +96,14 @@ public class SeekBarOSCWrapper implements OnSeekBarChangeListener {
 		this.maxValue = maxValue;
 	}
 	
+	public String getName() {
+		return this.name;
+	}
 	
+	public void setName(String name) {
+		this.name = name;
+	}
+		
 	/**
 	 * Scales progress value according to minValue and maxValue
 	 * @param progress
