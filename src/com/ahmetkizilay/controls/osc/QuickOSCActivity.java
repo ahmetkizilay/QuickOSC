@@ -1,7 +1,14 @@
 package com.ahmetkizilay.controls.osc;
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
 
 import com.ahmetkizilay.controls.osc.R;
 import com.illposed.osc.OSCMessage;
@@ -10,10 +17,13 @@ import com.illposed.osc.OSCPortOut;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -44,11 +54,21 @@ public class QuickOSCActivity extends Activity {
     
     private final static int ABOUT_DIALOG = 1;
     private final static int NETWORK_DIALOG = 2;
+    private final static int WIFI_ALERT_DIALOG = 3;
+    
+    private final static String NETWORK_SETTINGS_FILE = "qosc_network.cfg";
+    private final static String OSC_SETTINGS_FILE = "qosc_osc.cfg";
     
     private ButtonOSCWrapper selectedButtonOSCWrapper;
     private ToggleOSCWrapper selectedToggleOSCWrapper;
     private SeekBarOSCWrapper selectedSeekBarOSCWrapper;
-
+    
+    private List<ButtonOSCWrapper> buttonOSCWrapperList = new ArrayList<ButtonOSCWrapper>();
+    private List<ToggleOSCWrapper> toggleOSCWrapperList = new ArrayList<ToggleOSCWrapper>();
+    private List<SeekBarOSCWrapper> seekBarOSCWrapperList = new ArrayList<SeekBarOSCWrapper>();
+    private Hashtable<String, String> oscSettingsHashtable = new Hashtable<String, String>();
+    
+    
     private boolean editMode = false;
 
     
@@ -62,94 +82,203 @@ public class QuickOSCActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-                
+        
+        
+		restoreNetworkSettingsFromFile();
+		restoreOSCSettingsFromFile();
         initializeOSC();
         
         debugTextView = (TextView) findViewById(R.id.textView1);
         
         Button button1 = (Button) findViewById(R.id.button1);
-        ButtonOSCWrapper.createInstance("btn1", button1, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn1", 
+						        		oscSettingsHashtable.get("btn1-butpres"), 
+						        		Boolean.parseBoolean(oscSettingsHashtable.get("btn1-trgbutrel")),
+						        		oscSettingsHashtable.get("btn1-butrel"),
+						        		button1, this));
                 
         Button button2 = (Button) findViewById(R.id.button2);
-        ButtonOSCWrapper.createInstance("btn2", button2, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn2", 
+        		oscSettingsHashtable.get("btn2-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn2-trgbutrel")),
+        		oscSettingsHashtable.get("btn2-butrel"),
+        		button2, this));
         
         Button button3 = (Button) findViewById(R.id.button3);
-        ButtonOSCWrapper.createInstance("btn3", button3, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn3", 
+        		oscSettingsHashtable.get("btn3-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn3-trgbutrel")),
+        		oscSettingsHashtable.get("btn3-butrel"),
+        		button3, this));
         
         Button button4 = (Button) findViewById(R.id.button4);
-        ButtonOSCWrapper.createInstance("btn4", button4, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn4", 
+        		oscSettingsHashtable.get("btn4-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn4-trgbutrel")),
+        		oscSettingsHashtable.get("btn4-butrel"),
+        		button4, this));
         
         Button button5 = (Button) findViewById(R.id.button5);
-        ButtonOSCWrapper.createInstance("btn5", button5, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn5", 
+        		oscSettingsHashtable.get("btn5-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn5-trgbutrel")),
+        		oscSettingsHashtable.get("btn5-butrel"),
+        		button5, this));
         
         Button button6 = (Button) findViewById(R.id.button6);
-        ButtonOSCWrapper.createInstance("btn6", button6, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn6", 
+        		oscSettingsHashtable.get("btn6-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn6-trgbutrel")),
+        		oscSettingsHashtable.get("btn6-butrel"),
+        		button6, this));
         
         Button button7 = (Button) findViewById(R.id.button7);
-        ButtonOSCWrapper.createInstance("btn7", button7, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn7", 
+        		oscSettingsHashtable.get("btn7-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn7-trgbutrel")),
+        		oscSettingsHashtable.get("btn7-butrel"),
+        		button7, this));
         
         Button button8 = (Button) findViewById(R.id.button8);
-        ButtonOSCWrapper.createInstance("btn8", button8, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn8", 
+        		oscSettingsHashtable.get("btn8-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn8-trgbutrel")),
+        		oscSettingsHashtable.get("btn8-butrel"),
+        		button8, this));
         
         Button button9 = (Button) findViewById(R.id.button9);
-        ButtonOSCWrapper.createInstance("btn9", button9, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn9", 
+        		oscSettingsHashtable.get("btn9-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn9-trgbutrel")),
+        		oscSettingsHashtable.get("btn9-butrel"),
+        		button9, this));
         
         Button button10 = (Button) findViewById(R.id.button10);
-        ButtonOSCWrapper.createInstance("btn10", button10, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn10", 
+        		oscSettingsHashtable.get("btn10-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn10-trgbutrel")),
+        		oscSettingsHashtable.get("btn10-butrel"),
+        		button10, this));
         
         Button button11 = (Button) findViewById(R.id.button11);
-        ButtonOSCWrapper.createInstance("btn11", button11, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn11", 
+        		oscSettingsHashtable.get("btn11-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn11-trgbutrel")),
+        		oscSettingsHashtable.get("btn11-butrel"),
+        		button11, this));
         
         Button button12 = (Button) findViewById(R.id.button12);
-        ButtonOSCWrapper.createInstance("btn12", button12, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn12", 
+        		oscSettingsHashtable.get("btn12-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn12-trgbutrel")),
+        		oscSettingsHashtable.get("btn12-butrel"),
+        		button12, this));
         
         Button button13 = (Button) findViewById(R.id.button13);
-        ButtonOSCWrapper.createInstance("btn13", button13, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn13", 
+        		oscSettingsHashtable.get("btn13-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn13-trgbutrel")),
+        		oscSettingsHashtable.get("btn13-butrel"),
+        		button13, this));
         
         Button button14 = (Button) findViewById(R.id.button14);
-        ButtonOSCWrapper.createInstance("btn14", button14, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn14", 
+        		oscSettingsHashtable.get("btn14-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn14-trgbutrel")),
+        		oscSettingsHashtable.get("btn14-butrel"),
+        		button14, this));
         
         Button button15 = (Button) findViewById(R.id.button15);
-        ButtonOSCWrapper.createInstance("btn15", button15, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn15", 
+        		oscSettingsHashtable.get("btn15-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn15-trgbutrel")),
+        		oscSettingsHashtable.get("btn15-butrel"),
+        		button15, this));
         
         Button button16 = (Button) findViewById(R.id.button16);
-        ButtonOSCWrapper.createInstance("btn16", button16, this);
+        buttonOSCWrapperList.add(ButtonOSCWrapper.createInstance("btn16", 
+        		oscSettingsHashtable.get("btn16-butpres"), 
+        		Boolean.parseBoolean(oscSettingsHashtable.get("btn16-trgbutrel")),
+        		oscSettingsHashtable.get("btn16-butrel"),
+        		button16, this));
         
         ToggleButton toggle1 = (ToggleButton) findViewById(R.id.toggleButton1);
-        ToggleOSCWrapper.createInstance("tog1", toggle1, this);
+        toggleOSCWrapperList.add(ToggleOSCWrapper.createInstance("tog1", 
+        		oscSettingsHashtable.get("tog1-togon"),
+        		oscSettingsHashtable.get("tog1-togoff"),
+        		toggle1, this));
         
         ToggleButton toggle2 = (ToggleButton) findViewById(R.id.toggleButton2);
-        ToggleOSCWrapper.createInstance("tog2", toggle2, this);
+        toggleOSCWrapperList.add(ToggleOSCWrapper.createInstance("tog2", 
+        		oscSettingsHashtable.get("tog2-togon"),
+        		oscSettingsHashtable.get("tog2-togoff"),
+        		toggle2, this));
         
         ToggleButton toggle3 = (ToggleButton) findViewById(R.id.toggleButton3);
-        ToggleOSCWrapper.createInstance("tog3", toggle3, this);
+        toggleOSCWrapperList.add(ToggleOSCWrapper.createInstance("tog3", 
+        		oscSettingsHashtable.get("tog3-togon"),
+        		oscSettingsHashtable.get("tog3-togoff"),
+        		toggle3, this));
         
         ToggleButton toggle4 = (ToggleButton) findViewById(R.id.toggleButton4);
-        ToggleOSCWrapper.createInstance("tog4", toggle4, this);
+        toggleOSCWrapperList.add(ToggleOSCWrapper.createInstance("tog4", 
+        		oscSettingsHashtable.get("tog4-togon"),
+        		oscSettingsHashtable.get("tog4-togoff"),
+        		toggle4, this));
         
         ToggleButton toggle5 = (ToggleButton) findViewById(R.id.toggleButton5);
-        ToggleOSCWrapper.createInstance("tog5", toggle5, this);
+        toggleOSCWrapperList.add(ToggleOSCWrapper.createInstance("tog5", 
+        		oscSettingsHashtable.get("tog5-togon"),
+        		oscSettingsHashtable.get("tog5-togoff"),
+        		toggle5, this));
         
         ToggleButton toggle6 = (ToggleButton) findViewById(R.id.toggleButton6);
-        ToggleOSCWrapper.createInstance("tog6", toggle6, this);
+        toggleOSCWrapperList.add(ToggleOSCWrapper.createInstance("tog6", 
+        		oscSettingsHashtable.get("tog6-togon"),
+        		oscSettingsHashtable.get("tog6-togoff"),
+        		toggle6, this));
         
         ToggleButton toggle7 = (ToggleButton) findViewById(R.id.toggleButton7);
-        ToggleOSCWrapper.createInstance("tog7", toggle7, this);
+        toggleOSCWrapperList.add(ToggleOSCWrapper.createInstance("tog7", 
+        		oscSettingsHashtable.get("tog7-togon"),
+        		oscSettingsHashtable.get("tog7-togoff"),
+        		toggle7, this));
         
         ToggleButton toggle8 = (ToggleButton) findViewById(R.id.toggleButton8);
-        ToggleOSCWrapper.createInstance("tog8", toggle8, this);
+        toggleOSCWrapperList.add(ToggleOSCWrapper.createInstance("tog8", 
+        		oscSettingsHashtable.get("tog8-togon"),
+        		oscSettingsHashtable.get("tog8-togoff"),
+        		toggle8, this));
         
         SeekBar seekBar1 = (SeekBar) findViewById(R.id.seekBar1);
-        SeekBarOSCWrapper.createInstance("seekBar1", seekBar1, this);
+        seekBarOSCWrapperList.add(SeekBarOSCWrapper.createInstance("seekBar1",
+        		oscSettingsHashtable.get("seekBar1-valcng"),
+        		safeFloatParse(oscSettingsHashtable.get("seekBar1-minval"), 0),
+        		safeFloatParse(oscSettingsHashtable.get("seekBar1-maxval"), 100),
+        		seekBar1, this));
         
         SeekBar seekBar2 = (SeekBar) findViewById(R.id.seekBar2);
-        SeekBarOSCWrapper.createInstance("seekBar2", seekBar2, this);
+        seekBarOSCWrapperList.add(SeekBarOSCWrapper.createInstance("seekBar2",
+        		oscSettingsHashtable.get("seekBar2-valcng"),
+        		safeFloatParse(oscSettingsHashtable.get("seekBar2-minval"), 0),
+        		safeFloatParse(oscSettingsHashtable.get("seekBar2-maxval"), 100),
+        		seekBar2, this));
         
         SeekBar seekBar3 = (SeekBar) findViewById(R.id.seekBar3);
-        SeekBarOSCWrapper.createInstance("seekBar3", seekBar3, this);
+        seekBarOSCWrapperList.add(SeekBarOSCWrapper.createInstance("seekBar3",
+        		oscSettingsHashtable.get("seekBar3-valcng"),
+        		safeFloatParse(oscSettingsHashtable.get("seekBar3-minval"), 0),
+        		safeFloatParse(oscSettingsHashtable.get("seekBar3-maxval"), 100),
+        		seekBar3, this));
         
         SeekBar seekBar4 = (SeekBar) findViewById(R.id.seekBar4);
-        SeekBarOSCWrapper.createInstance("seekBar4", seekBar4, this);
+        seekBarOSCWrapperList.add(SeekBarOSCWrapper.createInstance("seekBar4",
+        		oscSettingsHashtable.get("seekBar4-valcng"),
+        		safeFloatParse(oscSettingsHashtable.get("seekBar4-minval"), 0),
+        		safeFloatParse(oscSettingsHashtable.get("seekBar4-maxval"), 100),
+        		seekBar4, this));
+        
+        checkWifiState();
 
     }
     
@@ -266,6 +395,8 @@ public class QuickOSCActivity extends Activity {
 		selectedButtonOSCWrapper.setMessageButtonPressed(msgButtonPressed);
 		selectedButtonOSCWrapper.setMessageButtonReleased(msgButtonReleased);
 		selectedButtonOSCWrapper.setTriggerWhenButtonReleased(trigButtonReleased);
+		
+		saveOSCSettingsIntoFile();
     }
 
     /**
@@ -278,7 +409,9 @@ public class QuickOSCActivity extends Activity {
 		String msgToggleOff = (String) intent.getExtras().get("msgToggleOff").toString();
 				
 		selectedToggleOSCWrapper.setMessageToggleOn(msgToggleOn);
-		selectedToggleOSCWrapper.setMessageToggleOff(msgToggleOff);		
+		selectedToggleOSCWrapper.setMessageToggleOff(msgToggleOff);
+		
+		saveOSCSettingsIntoFile();
     }
     
     /**
@@ -294,12 +427,14 @@ public class QuickOSCActivity extends Activity {
 		selectedSeekBarOSCWrapper.setMsgValueChanged(msgValueChanged);
 		selectedSeekBarOSCWrapper.setMaxValue(fltMaxValue);
 		selectedSeekBarOSCWrapper.setMinValue(fltMinValue);
+		
+		saveOSCSettingsIntoFile();
     }
     
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
     	MenuItem editMenuItem = menu.getItem(1);
-    	editMenuItem.setTitle(editMode ? "run mode" : "edit mode");
+    	editMenuItem.setTitle(editMode ? "play mode" : "edit mode");
     	
     	return super.onPrepareOptionsMenu(menu);
     }
@@ -335,11 +470,34 @@ public class QuickOSCActivity extends Activity {
     		return createAboutDialog();
     	case NETWORK_DIALOG:
     		return createNetworkDialog();
+    	case WIFI_ALERT_DIALOG:
+    		return createWifiAlertDialog();
     	default:
     		return null;
     	}
     }
     
+    private Dialog createWifiAlertDialog() {
+    	AlertDialog alert = new AlertDialog.Builder(this).create();
+    	alert.setTitle("Wifi Not Detected");
+    	alert.setCancelable(false);
+    	alert.setMessage("Enable Wifi For OSC");
+    	alert.setButton(Dialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+    		public void onClick(DialogInterface dialog, int which) {
+    			dialog.dismiss();
+    			removeDialog(WIFI_ALERT_DIALOG);
+    		}
+    	});
+    	alert.setButton(Dialog.BUTTON_POSITIVE, "Wifi Settings", new DialogInterface.OnClickListener() {
+    		public void onClick(DialogInterface dialog, int which) {
+    			dialog.dismiss();
+    			removeDialog(WIFI_ALERT_DIALOG);
+    			Intent wifiIntent = new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS);
+				startActivity(wifiIntent);
+    		}
+    	});
+    	return alert;
+    }
     
     /**
      * Creates a simple about dialog for self promotion.
@@ -352,13 +510,21 @@ public class QuickOSCActivity extends Activity {
     	AlertDialog alert = new AlertDialog.Builder(this).create();
     	alert.setView(aboutView);
     	alert.setCancelable(false);
-    	alert.setButton(Dialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+    	alert.setButton(Dialog.BUTTON_NEUTRAL, "Close", new DialogInterface.OnClickListener() {
 			
 			public void onClick(DialogInterface dialog, int which) {
 				dialog.dismiss();
-				
+			}			
+		});
+    	alert.setButton(Dialog.BUTTON_POSITIVE, "Follow Me", new DialogInterface.OnClickListener() {
+			
+			public void onClick(DialogInterface dialog, int which) {
+				Intent twitterIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://mobile.twitter.com/ahmetkizilay"));				
+				startActivity(twitterIntent);				
 			}
 		});
+    	alert.setTitle("QuickOSC");
+    	alert.setIcon(R.drawable.qosc);
 		return alert;
     }
     
@@ -387,6 +553,7 @@ public class QuickOSCActivity extends Activity {
 				EditText etNetworkPort = (EditText) alert.findViewById(R.id.etNetworkPort);
 				port = Integer.parseInt(etNetworkPort.getText().toString());
 				
+				saveNetworkSettinsIntoFile();
 				initializeOSC();
 			}
 		});
@@ -415,6 +582,7 @@ public class QuickOSCActivity extends Activity {
      */
     private void initializeOSC() {
     	try {
+    		
     		if(oscPortOut != null) {
     			oscPortOut.close();
     		}
@@ -440,6 +608,153 @@ public class QuickOSCActivity extends Activity {
     	}
     	catch(Exception exp) {
     		Toast.makeText(this, "Error Sending Message", Toast.LENGTH_SHORT).show();
+    	}
+    }
+    
+    /**
+     * Saves network settings to file to be on next startup
+     */
+    private void saveNetworkSettinsIntoFile() {
+    	try {
+    		try {
+        		FileOutputStream fos = openFileOutput(NETWORK_SETTINGS_FILE, Context.MODE_PRIVATE);
+        		
+        		String data = ipAddress + "#" + port;
+        		fos.write(data.getBytes());
+        		fos.close();
+        	}
+        	catch(Exception exp) {
+        		Toast.makeText(this, "Could Not Update SCAuth File", Toast.LENGTH_SHORT).show();
+        		exp.printStackTrace();
+        	}
+    	}
+    	catch(Exception exp) {
+    		Toast.makeText(this, "Error Saving Network Settings", Toast.LENGTH_SHORT).show();
+    	}
+    }
+    
+    /**
+     * Restores network settings which were saved in previous sessions
+     */
+    private void restoreNetworkSettingsFromFile() {
+    	try {	
+    		FileInputStream fis = openFileInput(NETWORK_SETTINGS_FILE);
+    		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    		byte[] buffer = new byte[512];
+    		int bytes_read;
+    		while((bytes_read = fis.read(buffer)) != -1) {
+    			baos.write(buffer, 0, bytes_read);
+    		}
+    		
+    		String data = new String(baos.toByteArray());
+    		String[] pieces = data.split("#");
+    		
+    		ipAddress = pieces[0];
+    		port = Integer.parseInt(pieces[1]);
+    		
+    	}
+    	catch(FileNotFoundException fnfe) {}
+    	catch(Exception exp) {
+    		Toast.makeText(this, "Could Not Read SCAuth File", Toast.LENGTH_SHORT).show();
+    		ipAddress = "127.0.0.1"; port = 8000;
+    	}
+    }
+    
+    private void restoreOSCSettingsFromFile() {
+    	try {
+    		oscSettingsHashtable.clear();
+    		
+    		FileInputStream fis = openFileInput(OSC_SETTINGS_FILE);
+    		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    		byte[] buffer = new byte[512];
+    		int bytes_read;
+    		while((bytes_read = fis.read(buffer)) != -1) {
+    			baos.write(buffer, 0, bytes_read);
+    		}
+    		
+    		String data = new String(baos.toByteArray());
+    		String[] pieces = data.split("#x#x#");
+    		
+    		for(int i = 0; i < pieces.length; i+=2) {
+    			oscSettingsHashtable.put(pieces[i], pieces[i+1]);
+    		}
+    	}
+    	catch(FileNotFoundException fnfe) {}
+    	catch(Exception exp) {
+    		Toast.makeText(this, "Could Not Read OSC Settings File", Toast.LENGTH_SHORT).show();
+    		oscSettingsHashtable.clear();
+       	}
+    }
+    
+    /**
+     * Saves network settings to file to be on next startup
+     */
+    private void saveOSCSettingsIntoFile() {
+    	try {
+    		try {
+        		FileOutputStream fos = openFileOutput(OSC_SETTINGS_FILE, Context.MODE_PRIVATE);
+        		
+        		StringBuffer dataBuffer = new StringBuffer();
+        		for(int i = 0; i < buttonOSCWrapperList.size(); i++) {
+        			ButtonOSCWrapper thisButtonWrapper = buttonOSCWrapperList.get(i);
+        			dataBuffer.append(thisButtonWrapper.getName() + "-butpres" + "#x#x#" + thisButtonWrapper.getMessageButtonPressed() + "#x#x#");
+        			dataBuffer.append(thisButtonWrapper.getName() + "-trgbutrel" + "#x#x#" + thisButtonWrapper.getTriggerWhenButtonReleased() + "#x#x#");
+        			dataBuffer.append(thisButtonWrapper.getName() + "-butrel" + "#x#x#" + thisButtonWrapper.getMessageButtonReleased() + "#x#x#");
+        		}
+        		
+        		for(int i = 0; i < toggleOSCWrapperList.size(); i++) {
+        			ToggleOSCWrapper thisToggleOSCWrapper = toggleOSCWrapperList.get(i);
+        			dataBuffer.append(thisToggleOSCWrapper.getName() + "-togon" + "#x#x#" + thisToggleOSCWrapper.getMessageToggleOn() + "#x#x#");
+        			dataBuffer.append(thisToggleOSCWrapper.getName() + "-togoff" + "#x#x#" + thisToggleOSCWrapper.getMessageToggleOff() + "#x#x#");
+        		}
+        		
+        		for(int i = 0; i < seekBarOSCWrapperList.size(); i++) {
+        			SeekBarOSCWrapper thisSeekBarOSCWrapper = seekBarOSCWrapperList.get(i);
+        			dataBuffer.append(thisSeekBarOSCWrapper.getName() + "-valcng" + "#x#x#" + thisSeekBarOSCWrapper.getMsgValueChanged() + "#x#x#");
+        			dataBuffer.append(thisSeekBarOSCWrapper.getName() + "-minval" + "#x#x#" + thisSeekBarOSCWrapper.getMinValue() + "#x#x#");
+        			dataBuffer.append(thisSeekBarOSCWrapper.getName() + "-maxval" + "#x#x#" + thisSeekBarOSCWrapper.getMaxValue() + "#x#x#");
+        		}
+        		
+        		String data = dataBuffer.toString();
+        		data = data.substring(0, data.length() - 5);
+        		
+        		fos.write(data.toString().getBytes());
+        		fos.close();
+        	}
+        	catch(Exception exp) {
+        		Toast.makeText(this, "Could Not Update SCAuth File", Toast.LENGTH_SHORT).show();
+        		exp.printStackTrace();
+        	}
+    	}
+    	catch(Exception exp) {
+    		Toast.makeText(this, "Error Saving Network Settings", Toast.LENGTH_SHORT).show();
+    	}
+    }
+    
+    private float safeFloatParse(String val, float defVal) {
+    	try {
+    		return Float.parseFloat(val);
+    	}
+    	catch(Exception nfe){
+    		return defVal;
+    	}
+    }
+    
+    @Override
+    public void onBackPressed() {
+    	if(this.editMode) {
+    		this.editMode = false;
+            getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+            Toast.makeText(this, "Edit Mode Disabled", Toast.LENGTH_SHORT).show();
+    		return;
+    	}
+    	super.onBackPressed();
+    }
+    
+    private void checkWifiState() {
+    	WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+    	if(!wifiManager.isWifiEnabled()) {
+    		showDialog(WIFI_ALERT_DIALOG);
     	}
     }
 }
