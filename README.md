@@ -11,6 +11,8 @@ The app can be downloaded on the [Google Play Market](https://play.google.com/st
 
 
 ## Change History
+###1.3###
++ **FIXED:** Better Layout Support For Different Screen Sizes
 ###1.1###
 + **ADDED:** Alternating text menu item for edit and play mode.
 + **ADDED:** Only Portrait Orientation
