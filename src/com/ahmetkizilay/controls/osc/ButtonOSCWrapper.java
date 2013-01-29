@@ -21,6 +21,7 @@ public class ButtonOSCWrapper implements OnTouchListener{
 	private QuickOSCActivity parentActivity;
 	private String messageButtonPressed = "";
 	private String messageButtonReleased = "";
+	private String name;
 	private boolean triggerWhenButtonReleased = true;
 	
 	
@@ -35,11 +36,25 @@ public class ButtonOSCWrapper implements OnTouchListener{
 		return new ButtonOSCWrapper(name, button, parentActivity);
 	}
 	
+	public static ButtonOSCWrapper createInstance(String name, String msgButtonPressed, boolean trigWhenButtonReleased, String msgButtonReleased, Button button, QuickOSCActivity parentActivity) {
+		return new ButtonOSCWrapper(name, msgButtonPressed, trigWhenButtonReleased, msgButtonReleased, button, parentActivity);
+	}
 	private ButtonOSCWrapper(String name, Button button, QuickOSCActivity parentActivity) {
 		this.button = button;
-		this.parentActivity = parentActivity;		
+		this.parentActivity = parentActivity;
+		this.name = name;
 		this.messageButtonPressed = "/" + name + "/1";
 		this.messageButtonReleased = "/" + name + "/0";
+		this.button.setOnTouchListener(this);
+	}
+	
+	private ButtonOSCWrapper(String name, String msgButtonPressed, boolean trigWhenButtonReleased, String msgButtonReleased, Button button, QuickOSCActivity parentActivity) {
+		this.button = button;
+		this.name = name;
+		this.parentActivity = parentActivity;		
+		this.messageButtonPressed = (msgButtonPressed == null || msgButtonPressed.equals("")) ? "/" + name + "/1" : msgButtonPressed;
+		this.messageButtonReleased = (msgButtonReleased == null || msgButtonReleased.equals("")) ? "/" + name + "/1" : msgButtonPressed;
+		this.triggerWhenButtonReleased = trigWhenButtonReleased;
 		this.button.setOnTouchListener(this);
 	}
 
@@ -89,6 +104,14 @@ public class ButtonOSCWrapper implements OnTouchListener{
 	
 	public boolean getTriggerWhenButtonReleased() {
 		return this.triggerWhenButtonReleased;				
+	}
+	
+	public String getName() {
+		return this.name;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
 	}
 
 }
