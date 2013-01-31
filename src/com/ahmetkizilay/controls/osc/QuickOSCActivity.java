@@ -24,6 +24,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -588,7 +589,7 @@ public class QuickOSCActivity extends Activity {
     		}
     		
     		oscPortOut = new OSCPortOut(InetAddress.getByName(ipAddress), port);
-    	}
+       	}
     	catch(Exception exp) {
     		Toast.makeText(this, "Error Initializing OSC", Toast.LENGTH_SHORT).show();
     		oscPortOut = null;
@@ -601,10 +602,9 @@ public class QuickOSCActivity extends Activity {
      * @param message
      */
     
-    public void sendOSC(String message) {
+    public void sendOSC(String message) {    	
     	try {
-    		OSCMessage msg = new OSCMessage(message);
-    		this.oscPortOut.send(msg);
+	    	new AsyncSendOSCTask(this, this.oscPortOut).execute(new OSCMessage(message));	    	
     	}
     	catch(Exception exp) {
     		Toast.makeText(this, "Error Sending Message", Toast.LENGTH_SHORT).show();
