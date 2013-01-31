@@ -20,15 +20,11 @@ public class AsyncSendOSCTask extends AsyncTask<OSCMessage, Void, Boolean> {
 	
 	@Override
 	protected Boolean doInBackground(OSCMessage... message) {
-		try {
-			Log.i("AsyncSendOSCTask", "Start");			
+		try {						
     		this.oscPortOut.send(message[0]);	
     		return Boolean.TRUE;
     	}
     	catch(Exception exp) {
-    		String msg = exp.getMessage();
-    		
-    		Log.d("AsyncSendOSCTask", msg);
     		return Boolean.FALSE;
     	}
 	}
