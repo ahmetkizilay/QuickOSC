@@ -11,7 +11,7 @@ The app can be downloaded on the [Google Play Market](https://play.google.com/st
 
 
 ## Change History
-###1.3###
+###1.3.5###
 + **FIXED:** Problem With Sending OSC Messages Asynchronously
 
 ###1.3###
