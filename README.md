@@ -11,6 +11,10 @@ The app can be downloaded on the [Google Play Market](https://play.google.com/st
 
 
 ## Change History
+###1.4###
++ **ADDED:** Support for int, string and float OSC arguments. 
++ **FIXED:** Crash after edit settings on some devices.
+
 ###1.3.5###
 + **FIXED:** Problem With Sending OSC Messages Asynchronously
 
