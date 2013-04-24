@@ -26,6 +26,8 @@ public class ToggleOSCSettingActivity extends Activity implements OnClickListene
 	private Button btnToggleSave;
 	private Button btnToggleCancel;
 	
+	private int selectedIndex;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {		
 		super.onCreate(savedInstanceState);
@@ -34,6 +36,7 @@ public class ToggleOSCSettingActivity extends Activity implements OnClickListene
 		Intent originalIntent = getIntent(); 
 		String msgToggleOn = originalIntent.getStringExtra("msgToggleOn");
 		String msgToggleOff = originalIntent.getStringExtra("msgToggleOff");
+		this.selectedIndex = originalIntent.getIntExtra("index", 0);
 		
 		editTextToggleOn = (EditText) findViewById(R.id.etToggleOn);		
 		if(msgToggleOn != null && !msgToggleOn.equalsIgnoreCase("")) {	
@@ -57,7 +60,8 @@ public class ToggleOSCSettingActivity extends Activity implements OnClickListene
 		
 		if(view.equals(btnToggleSave)) {
 			data.putExtra("msgToggleOn", editTextToggleOn.getText());
-			data.putExtra("msgToggleOff", editTextToggleOff.getText());			
+			data.putExtra("msgToggleOff", editTextToggleOff.getText());	
+			data.putExtra("index", this.selectedIndex);
 			
 			setResult(Activity.RESULT_OK, data);	
 		}
