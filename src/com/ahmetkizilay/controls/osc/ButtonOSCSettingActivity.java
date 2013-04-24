@@ -31,6 +31,8 @@ public class ButtonOSCSettingActivity extends Activity implements OnClickListene
 	private Button btnButtonSave;
 	private Button btnButtonCancel;
 	
+	private int selectedIndex; 
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {		
 		super.onCreate(savedInstanceState);
@@ -40,6 +42,7 @@ public class ButtonOSCSettingActivity extends Activity implements OnClickListene
 		String msgButtonPressed = originalIntent.getStringExtra("msgButtonPressed");
 		String msgButtonReleased = originalIntent.getStringExtra("msgButtonReleased");
 		boolean trigButtonReleased = originalIntent.getBooleanExtra("trigButtonReleased", false);
+		this.selectedIndex = originalIntent.getIntExtra("index", 0);
 		
 		editTextButtonPressed = (EditText) findViewById(R.id.etButtonPressed);
 		
@@ -79,6 +82,7 @@ public class ButtonOSCSettingActivity extends Activity implements OnClickListene
 			data.putExtra("msgButtonPressed", editTextButtonPressed.getText());
 			data.putExtra("msgButtonReleased", editTextButtonReleased.getText());
 			data.putExtra("trigButtonReleased", checkBoxTrigButtonReleased.isChecked());
+			data.putExtra("index", this.selectedIndex);
 			
 			setResult(Activity.RESULT_OK, data);	
 		}
