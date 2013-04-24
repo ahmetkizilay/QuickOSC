@@ -20,6 +20,7 @@ public class SeekBarOSCWrapper implements OnSeekBarChangeListener {
 	private float minValue = 0;
 	private float maxValue = 100;
 	private String name;
+	private int index;
 	
 	/**
 	 * Default constructor publicly available for other classes.
@@ -28,15 +29,16 @@ public class SeekBarOSCWrapper implements OnSeekBarChangeListener {
 	 * @param parentActivity
 	 * @return
 	 */
-	public static SeekBarOSCWrapper createInstance(String name, SeekBar seekBar, QuickOSCActivity parentActivity) {
-		return new SeekBarOSCWrapper(name, seekBar, parentActivity);
+	public static SeekBarOSCWrapper createInstance(int index, String name, SeekBar seekBar, QuickOSCActivity parentActivity) {
+		return new SeekBarOSCWrapper(index, name, seekBar, parentActivity);
 	}
 	
-	public static SeekBarOSCWrapper createInstance(String name, String msgValueChanged, float minVal, float maxVal, SeekBar seekBar, QuickOSCActivity parentActivity) {		
-		return new SeekBarOSCWrapper(name, msgValueChanged, minVal, maxVal, seekBar, parentActivity);
+	public static SeekBarOSCWrapper createInstance(int index, String name, String msgValueChanged, float minVal, float maxVal, SeekBar seekBar, QuickOSCActivity parentActivity) {		
+		return new SeekBarOSCWrapper(index, name, msgValueChanged, minVal, maxVal, seekBar, parentActivity);
 	}
 	
-	private SeekBarOSCWrapper(String name, SeekBar seekBar, QuickOSCActivity parentActivity) {
+	private SeekBarOSCWrapper(int index, String name, SeekBar seekBar, QuickOSCActivity parentActivity) {
+		this.index = index;
 		this.seekBar = seekBar;
 		this.parentActivity = parentActivity;
 		this.name = name;
@@ -44,7 +46,8 @@ public class SeekBarOSCWrapper implements OnSeekBarChangeListener {
 		this.seekBar.setOnSeekBarChangeListener(this);
 	}
 	
-	private SeekBarOSCWrapper(String name, String msgValueChanged, float minVal, float maxVal, SeekBar seekBar, QuickOSCActivity parentActivity) {
+	private SeekBarOSCWrapper(int index, String name, String msgValueChanged, float minVal, float maxVal, SeekBar seekBar, QuickOSCActivity parentActivity) {
+		this.index = index;
 		this.seekBar = seekBar;
 		this.parentActivity = parentActivity;
 		this.name = name;
@@ -58,7 +61,17 @@ public class SeekBarOSCWrapper implements OnSeekBarChangeListener {
 		if(!parentActivity.isEditMode()) {
 			float val = scaleOutput(progress);
 			String message = msgValueChanged.replace("$", Float.toString(val));
-			parentActivity.sendOSC(message);
+
+			String[] messageParts = message.split(" ");
+			Object[] arguments = null;
+			if(messageParts.length > 0) {
+				arguments = new Object[messageParts.length - 1];
+				for(int i = 1; i < messageParts.length; i++) {
+					arguments[i - 1] = Utils.simpleParse(messageParts[i]);
+				}
+			}
+			
+			parentActivity.sendOSC(messageParts[0], arguments);
 			parentActivity.setDebugMessage(message);
 		}		
 	}
@@ -113,5 +126,8 @@ public class SeekBarOSCWrapper implements OnSeekBarChangeListener {
 		return minValue + ((maxValue - minValue) * progress / 100.0f);
 	}
 	
+	public int getIndex() {
+		return this.index;
+	}
 	
 }
