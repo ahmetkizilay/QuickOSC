@@ -27,6 +27,8 @@ public class SeekBarOSCSettingActivity extends Activity implements OnClickListen
 
 	private Button btnSeekSave;
 	private Button btnSeekCancel;
+	
+	private int selectedIndex;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +39,7 @@ public class SeekBarOSCSettingActivity extends Activity implements OnClickListen
 		String msgValueChanged = originalIntent.getStringExtra("msgValueChanged");
 		float msgMinValue = originalIntent.getFloatExtra("minValue", 0);
 		float msgMaxValue = originalIntent.getFloatExtra("maxValue", 100);
+		this.selectedIndex = originalIntent.getIntExtra("index", 0);
 		
 		editTextValueChanged = (EditText) findViewById(R.id.etSeekMessage);		
 		if(msgValueChanged != null && !msgValueChanged.equalsIgnoreCase("")) {	
@@ -64,7 +67,8 @@ public class SeekBarOSCSettingActivity extends Activity implements OnClickListen
 			data.putExtra("msgValueChanged", editTextValueChanged.getText());
 			data.putExtra("maxValue", editTextMaxValue.getText());
 			data.putExtra("minValue", editTextMinValue.getText());
-
+			data.putExtra("index", this.selectedIndex);
+			
 			setResult(Activity.RESULT_OK, data);
 		} else if (view.equals(btnSeekCancel)) {
 			setResult(Activity.RESULT_CANCELED, data);
