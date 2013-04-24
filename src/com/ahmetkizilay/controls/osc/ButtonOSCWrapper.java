@@ -19,8 +19,17 @@ public class ButtonOSCWrapper implements OnTouchListener{
 
 	private Button button;
 	private QuickOSCActivity parentActivity;
-	private String messageButtonPressed = "";
-	private String messageButtonReleased = "";
+	
+	private int index = 0;
+	
+	private String messageButtonPressedAddr = "";
+	private Object[] messageButtonPressedArgs = null;
+	private String messageButtonPressedRaw;
+	
+	private String messageButtonReleasedAddr = "";
+	private Object[] messageButtonReleasedArgs = null;
+	private String messageButtonReleasedRaw;
+	
 	private String name;
 	private boolean triggerWhenButtonReleased = true;
 	
@@ -36,24 +45,34 @@ public class ButtonOSCWrapper implements OnTouchListener{
 		return new ButtonOSCWrapper(name, button, parentActivity);
 	}
 	
-	public static ButtonOSCWrapper createInstance(String name, String msgButtonPressed, boolean trigWhenButtonReleased, String msgButtonReleased, Button button, QuickOSCActivity parentActivity) {
-		return new ButtonOSCWrapper(name, msgButtonPressed, trigWhenButtonReleased, msgButtonReleased, button, parentActivity);
+	public static ButtonOSCWrapper createInstance(int index, String name, String msgButtonPressed, boolean trigWhenButtonReleased, String msgButtonReleased, Button button, QuickOSCActivity parentActivity) {
+		return new ButtonOSCWrapper(index, name, msgButtonPressed, trigWhenButtonReleased, msgButtonReleased, button, parentActivity);
 	}
 	private ButtonOSCWrapper(String name, Button button, QuickOSCActivity parentActivity) {
 		this.button = button;
 		this.parentActivity = parentActivity;
 		this.name = name;
-		this.messageButtonPressed = "/" + name + "/1";
-		this.messageButtonReleased = "/" + name + "/0";
+		
+		this.messageButtonPressedAddr = "/" + name + "/1";
+		this.messageButtonPressedArgs = null;
+		this.messageButtonPressedRaw = this.messageButtonPressedAddr;
+		
+		this.messageButtonReleasedAddr = "/" + name + "/0";
+		this.messageButtonReleasedArgs = null;
+		this.messageButtonReleasedRaw = this.messageButtonReleasedAddr;
+		
 		this.button.setOnTouchListener(this);
 	}
 	
-	private ButtonOSCWrapper(String name, String msgButtonPressed, boolean trigWhenButtonReleased, String msgButtonReleased, Button button, QuickOSCActivity parentActivity) {
+	private ButtonOSCWrapper(int index, String name, String msgButtonPressed, boolean trigWhenButtonReleased, String msgButtonReleased, Button button, QuickOSCActivity parentActivity) {
+		this.index = index;
 		this.button = button;
 		this.name = name;
-		this.parentActivity = parentActivity;		
-		this.messageButtonPressed = (msgButtonPressed == null || msgButtonPressed.equals("")) ? "/" + name + "/1" : msgButtonPressed;
-		this.messageButtonReleased = (msgButtonReleased == null || msgButtonReleased.equals("")) ? "/" + name + "/1" : msgButtonPressed;
+		this.parentActivity = parentActivity;	
+		
+		this.setMessageButtonPressed(msgButtonPressed);
+		this.setMessageButtonReleased(msgButtonReleased);
+		
 		this.triggerWhenButtonReleased = trigWhenButtonReleased;
 		this.button.setOnTouchListener(this);
 	}
@@ -63,17 +82,18 @@ public class ButtonOSCWrapper implements OnTouchListener{
 		if(event.getAction() == MotionEvent.ACTION_DOWN) {
 			if(!parentActivity.isEditMode())
 			{
-				parentActivity.sendOSC(messageButtonPressed);
-				parentActivity.setDebugMessage(messageButtonPressed);
+				parentActivity.sendOSC(this.messageButtonPressedAddr, this.messageButtonPressedArgs);
+				parentActivity.setDebugMessage(this.messageButtonPressedRaw);
 			}
 		}
 		else if(event.getAction() == MotionEvent.ACTION_UP) {
 			if(parentActivity.isEditMode()) {
+				System.out.println("naber");
 				parentActivity.callButtonOSCSetter(this);
 			}
 			else if(this.triggerWhenButtonReleased) {
-				parentActivity.sendOSC(messageButtonReleased);
-				parentActivity.setDebugMessage(messageButtonReleased);
+				parentActivity.sendOSC(this.messageButtonReleasedAddr, this.messageButtonReleasedArgs);
+				parentActivity.setDebugMessage(this.messageButtonReleasedRaw);
 			}
 		}
 		else {
@@ -83,23 +103,55 @@ public class ButtonOSCWrapper implements OnTouchListener{
 	}
 	
 	public void setMessageButtonPressed(String messageButtonPressed) {
-		this.messageButtonPressed = messageButtonPressed;
+		if(messageButtonPressed == null || messageButtonPressed.equals("")) {
+			this.messageButtonPressedAddr = "/" + name + "/1";
+			this.messageButtonPressedArgs = null;
+			this.messageButtonPressedRaw = this.messageButtonPressedAddr;
+		}
+		else {
+			this.messageButtonPressedRaw = messageButtonPressed;
+			
+			String[] msgButtonPressedParts = messageButtonPressed.split(" ");
+			this.messageButtonPressedAddr = msgButtonPressedParts[0];
+			if(msgButtonPressedParts.length > 0) {
+				this.messageButtonPressedArgs = new Object[msgButtonPressedParts.length - 1];
+				for(int i = 1; i < msgButtonPressedParts.length; i++) {
+					this.messageButtonPressedArgs[i - 1] = Utils.simpleParse(msgButtonPressedParts[i]);
+				}
+			}
+		}
 	}
 	
 	public void setMessageButtonReleased(String messageButtonReleased) {
-		this.messageButtonReleased = messageButtonReleased;
+		if(messageButtonReleased == null || messageButtonReleased.equals("")) {
+			this.messageButtonReleasedAddr = "/" + name + "/1";
+			this.messageButtonReleasedArgs = null;
+			this.messageButtonReleasedRaw = this.messageButtonReleasedAddr;
+		}
+		else {
+			this.messageButtonReleasedRaw = messageButtonReleased;
+			
+			String[] msgButtonReleasedParts = messageButtonReleased.split(" ");
+			this.messageButtonReleasedAddr = msgButtonReleasedParts[0];
+			if(msgButtonReleasedParts.length > 0) {
+				this.messageButtonReleasedArgs = new Object[msgButtonReleasedParts.length - 1];
+				for(int i = 1; i < msgButtonReleasedParts.length; i++) {
+					this.messageButtonReleasedArgs[i - 1] = Utils.simpleParse(msgButtonReleasedParts[i]);
+				}
+			}
+		}
 	}
 	
 	public void setTriggerWhenButtonReleased(boolean triggerWhenButtonReleased) {
 		this.triggerWhenButtonReleased = triggerWhenButtonReleased;
 	}
 	
-	public String getMessageButtonPressed() {
-		return this.messageButtonPressed;
+	public String getMessageButtonPressedRaw() {
+		return this.messageButtonPressedRaw;
 	}
 	
-	public String getMessageButtonReleased() {
-		return this.messageButtonReleased;
+	public String getMessageButtonReleasedRaw() {
+		return this.messageButtonReleasedRaw;
 	}
 	
 	public boolean getTriggerWhenButtonReleased() {
@@ -112,6 +164,10 @@ public class ButtonOSCWrapper implements OnTouchListener{
 	
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	public int getIndex() {
+		return this.index;
 	}
 
 }
